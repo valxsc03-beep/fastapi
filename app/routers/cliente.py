@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from models.cliente import Cliente
+from app.models.cliente import Cliente
 
 router_cliente = APIRouter()
 
