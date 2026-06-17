@@ -1,8 +1,7 @@
-from pydantic import BaseModel
+from sqlmodel import SQLModel, Field
 
-class Transaccion(BaseModel):
-
-    id: int = 0
+class Transaccion(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
     valor_unitario: float
     cantidad: int
     factura_id: int
