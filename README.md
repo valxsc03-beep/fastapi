@@ -39,6 +39,7 @@ proyecto_clientes/
 # Descripción del proyecto
 
 Este proyecto fue desarrollado con FastAPI utilizando Python.
+
 El sistema permite gestionar clientes, facturas y transacciones mediante endpoints CRUD.
 
 El proyecto implementa:
@@ -47,13 +48,10 @@ El proyecto implementa:
 * Listado de clientes
 * Edición de clientes
 * Eliminación de clientes
-
-Además:
-
 * Gestión de facturas
 * Gestión de transacciones
 * Organización modular del proyecto
-* Uso de modelos Pydantic
+* Uso de modelos Pydantic y SQLModel
 * Uso de routers
 * Uso de entorno virtual
 
@@ -77,8 +75,8 @@ Contiene:
 * id
 * fecha
 * cliente
-* lista_transacciones
-* método valor_total
+
+Incluye un método para calcular el valor total de la factura.
 
 ## Transacción
 
@@ -125,13 +123,13 @@ Durante el desarrollo del proyecto se realizaron las siguientes actividades:
 
 * Creación de la estructura modular del proyecto.
 * Configuración del entorno virtual.
-* Instalación de FastAPI y Uvicorn.
-* Creación de modelos utilizando Pydantic.
-* Implementación de endpoints CRUD.
-* Organización de routers para clientes, facturas y transacciones.
+* Instalación de FastAPI, Uvicorn y SQLModel.
+* Creación de modelos utilizando Pydantic y SQLModel.
+* Implementación de endpoints CRUD para clientes, facturas y transacciones.
+* Organización de routers para cada módulo del sistema.
 * Configuración y ejecución del servidor local con Uvicorn.
 * Pruebas funcionales mediante Swagger UI.
-* Corrección de errores de imports y estructura.
+* Corrección de errores de imports y estructura del proyecto.
 
 ---
 
@@ -173,8 +171,8 @@ venv\Scripts\activate.bat
 
 ## Windows PowerShell
 
-```bash
-venv\Scripts\activate
+```powershell
+.\venv\Scripts\Activate.ps1
 ```
 
 ## Linux
@@ -201,7 +199,7 @@ python -m uvicorn app.main:app --reload
 
 ---
 
-# 📌 Acceso al proyecto
+# Acceso al proyecto
 
 ## API principal
 
@@ -223,6 +221,7 @@ http://127.0.0.1:8000/docs
 * FastAPI
 * Uvicorn
 * Pydantic
+* SQLModel
 
 ---
 
@@ -232,4 +231,5 @@ http://127.0.0.1:8000/docs
 fastapi
 uvicorn
 pydantic
+sqlmodel
 ```
