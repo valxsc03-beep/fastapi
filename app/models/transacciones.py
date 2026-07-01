@@ -1,4 +1,9 @@
-from sqlmodel import SQLModel, Field
+from typing import TYPE_CHECKING
+
+from sqlmodel import SQLModel, Field, Relationship
+
+if TYPE_CHECKING:
+    from app.models.facturas import Factura
 
 
 class TransaccionBase(SQLModel):
@@ -11,6 +16,10 @@ class Transaccion(TransaccionBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     factura_id: int = Field(foreign_key="factura.id")
+
+    factura: "Factura" = Relationship(
+        back_populates="transacciones"
+    )
 
 
 class TransaccionCrear(TransaccionBase):
