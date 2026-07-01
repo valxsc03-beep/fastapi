@@ -2,9 +2,9 @@ from sqlmodel import SQLModel, Field
 
 
 class TransaccionBase(SQLModel):
-    cantidad: int
-    valor_unitario: float
     descripcion: str
+    cantidad: int = Field(default=0)
+    valor_unitario: float = Field(default=0.0)
 
 
 class Transaccion(TransaccionBase, table=True):
@@ -15,3 +15,11 @@ class Transaccion(TransaccionBase, table=True):
 
 class TransaccionCrear(TransaccionBase):
     pass
+
+
+class TransaccionLeer(SQLModel):
+    id: int
+    descripcion: str
+    cantidad: int
+    valor_unitario: float
+    factura_id: int

@@ -1,69 +1,51 @@
-from fastapi import APIRouter
-from app.models.transacciones import Transaccion
+from fastapi import APIRouter, HTTPException, status
+from sqlmodel import select
+
+from app.database import SessionDependency
+from app.models.facturas import Factura
+from app.models.transacciones import (
+    Transaccion,
+    TransaccionCrear,
+)
 
 router_transacciones = APIRouter()
 
-lista_transacciones = []
-contador_id = 1
 
-@router_transacciones.get("/transacciones")
-def listar_transacciones():
-    return {"transacciones": lista_transacciones}
+@router_transacciones.get("/transacciones", response_model=list[Transaccion])
+def listar_transacciones(session: SessionDependency):
+    return session.exec(select(Transaccion)).all()
 
-@router_transacciones.post("/transacciones")
-def crear_transaccion(datos_transaccion: Transaccion):
 
-    global contador_id
+@router_transacciones.post(
+    "/facturas/{factura_id}/transacciones",
+    response_model=Transaccion
+)
+def crear_transaccion(
+    factura_id: int,
+    datos_transaccion: TransaccionCrear,
+    session: SessionDependency
+):
+   
+    factura_bd = session.get(Factura, factura_id)
 
-    datos_transaccion.id = contador_id
-    contador_id += 1
+    if not factura_bd:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"La factura con ID {factura_id} no existe"
+        )
 
-    lista_transacciones.append(datos_transaccion)
+    
+    transaccion_dict = datos_transaccion.model_dump()
 
-    return {
-        "mensaje": "Transacción creada",
-        "transaccion": datos_transaccion
-    }
+    
+    transaccion_dict["factura_id"] = factura_id
 
-@router_transacciones.get("/transaccion/{transaccion_id}")
-def obtener_transaccion(transaccion_id: int):
+    
+    nueva_transaccion = Transaccion.model_validate(transaccion_dict)
 
-    for transaccion in lista_transacciones:
+    
+    session.add(nueva_transaccion)
+    session.commit()
+    session.refresh(nueva_transaccion)
 
-        if transaccion.id == transaccion_id:
-            return transaccion
-
-    return {"error": "Transacción no encontrada"}
-
-@router_transacciones.put("/transaccion/{transaccion_id}")
-def editar_transaccion(transaccion_id: int, datos_transaccion: Transaccion):
-
-    for i, transaccion in enumerate(lista_transacciones):
-
-        if transaccion.id == transaccion_id:
-
-            datos_transaccion.id = transaccion_id
-            lista_transacciones[i] = datos_transaccion
-
-            return {
-                "mensaje": "Transacción editada",
-                "transaccion": datos_transaccion
-            }
-
-    return {"error": "Transacción no encontrada"}
-
-@router_transacciones.delete("/transaccion/{transaccion_id}")
-def eliminar_transaccion(transaccion_id: int):
-
-    for i, transaccion in enumerate(lista_transacciones):
-
-        if transaccion.id == transaccion_id:
-
-            transaccion_eliminada = lista_transacciones.pop(i)
-
-            return {
-                "mensaje": "Transacción eliminada",
-                "transaccion": transaccion_eliminada
-            }
-
-    return {"error": "Transacción no encontrada"}
+    return nueva_transaccion
