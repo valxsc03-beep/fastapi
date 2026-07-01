@@ -1,55 +1,90 @@
-from fastapi import APIRouter
-from app.models.cliente import Cliente
+from fastapi import APIRouter, HTTPException, status
+from sqlmodel import select
+
+from app.database import SessionDependency
+from app.models.cliente import (
+    Cliente,
+    ClienteCrear,
+    ClienteEditar,
+)
 
 router_cliente = APIRouter()
 
-lista_clientes = []
-contador_id = 1
 
-@router_cliente.get("/clientes")
-def listar_clientes():
-    return {"clientes": lista_clientes}
+@router_cliente.get("/clientes", response_model=list[Cliente])
+def listar_clientes(session: SessionDependency):
+    return session.exec(select(Cliente)).all()
 
-@router_cliente.post("/clientes")
-def crear_clientes(datos_cliente: Cliente):
-    global contador_id
 
-    datos_cliente.id = contador_id
-    contador_id += 1
+@router_cliente.post("/clientes", response_model=Cliente)
+def crear_cliente(datos_cliente: ClienteCrear, session: SessionDependency):
 
-    lista_clientes.append(datos_cliente)
+    cliente_nuevo = Cliente.model_validate(datos_cliente)
+
+    session.add(cliente_nuevo)
+    session.commit()
+    session.refresh(cliente_nuevo)
+
+    return cliente_nuevo
+
+
+@router_cliente.get("/clientes/{cliente_id}", response_model=Cliente)
+def obtener_cliente(cliente_id: int, session: SessionDependency):
+
+    cliente_bd = session.get(Cliente, cliente_id)
+
+    if not cliente_bd:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"El cliente con ID {cliente_id} no existe"
+        )
+
+    return cliente_bd
+
+
+@router_cliente.patch("/clientes/{cliente_id}", response_model=Cliente)
+def editar_cliente(
+    cliente_id: int,
+    datos_cliente: ClienteEditar,
+    session: SessionDependency
+):
+
+    cliente_bd = session.get(Cliente, cliente_id)
+
+    if not cliente_bd:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cliente no encontrado"
+        )
+
+    cliente_dict = datos_cliente.model_dump(exclude_unset=True)
+
+    cliente_bd.sqlmodel_update(cliente_dict)
+
+    session.add(cliente_bd)
+    session.commit()
+    session.refresh(cliente_bd)
+
+    return cliente_bd
+
+
+@router_cliente.delete("/clientes/{cliente_id}")
+def eliminar_cliente(
+    cliente_id: int,
+    session: SessionDependency
+):
+
+    cliente_bd = session.get(Cliente, cliente_id)
+
+    if not cliente_bd:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cliente no encontrado"
+        )
+
+    session.delete(cliente_bd)
+    session.commit()
 
     return {
-        "mensaje": "Cliente creado",
-        "cliente": datos_cliente
+        "mensaje": f"El cliente con ID {cliente_id} fue eliminado exitosamente"
     }
-
-@router_cliente.get("/cliente/{cliente_id}")
-def obtener_cliente(cliente_id: int):
-    for cliente in lista_clientes:
-        if cliente.id == cliente_id:
-            return cliente
-    return {"error": "Cliente no encontrado"}
-
-@router_cliente.put("/cliente/{cliente_id}")
-def editar_cliente(cliente_id: int, datos_clientes: Cliente):
-    for i, cliente in enumerate(lista_clientes):
-        if cliente.id == cliente_id:
-            datos_clientes.id = cliente_id
-            lista_clientes[i] = datos_clientes
-            return {
-                "mensaje": "Cliente editado",
-                "cliente": datos_clientes
-            }
-    return {"error": "Cliente no encontrado"}
-
-@router_cliente.delete("/cliente/{cliente_id}")
-def eliminar_cliente(cliente_id: int):
-    for i, cliente in enumerate(lista_clientes):
-        if cliente.id == cliente_id:
-            cliente_eliminado = lista_clientes.pop(i)
-            return {
-                "mensaje": "Cliente eliminado",
-                "cliente": cliente_eliminado
-            }
-    return {"error": "Cliente no encontrado"}
