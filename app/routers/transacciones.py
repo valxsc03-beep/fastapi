@@ -9,8 +9,8 @@ from app.models.transacciones import (
 )
 from app.models.facturas import Factura
 
-
 router_transacciones = APIRouter(tags=["Transacciones"])
+
 
 @router_transacciones.get("/transacciones", response_model=list[TransaccionLeer])
 def listar_transacciones(session: SessionDependency):
