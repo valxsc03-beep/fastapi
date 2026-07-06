@@ -47,3 +47,5 @@ app/
 base_datos.db
 requirements.txt
 README.md
+
+Entregado
